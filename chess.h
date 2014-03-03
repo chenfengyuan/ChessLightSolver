@@ -31,10 +31,19 @@ inline std::vector<PieceType> get_all_piece_types(){
     }
     return rv;
 }
+struct Point{
+    int x;
+    int y;
+    Point(int x_,int y_):x{x_},y{y_}{}
+    Point():x{-1},y{-1}{}
+    operator std::string (){
+        return std::to_string(x) + "," + std::to_string(y);
+    }
+};
 
 struct Piece{
     PieceType piece_type;
-    std::array<int, 2> point;
+    Point point;
 };
 Chess::Board get_board(cv::Mat img);
 struct PieceCountHash{
@@ -52,5 +61,6 @@ struct PieceImgs:std::unordered_map<PieceType,cv::Mat,PieceCountHash>{
 };
 PieceImgs get_PieceImgs_from_dir(std::string path);
 PieceCount get_piece_count(cv::Mat img, PieceImgs pieces_imgs);
+std::vector<Point> get_positions_in_board(cv::Mat origin, cv::Mat tpl);
 }
 #endif // CHESS_H

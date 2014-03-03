@@ -28,7 +28,7 @@ int main(int,char *argv[])
     for(auto pair : Chess::get_piece_count(ref,piece_imgs)){
         std::cout << get_PieceType_name(std::get<0>(pair)) << "," << std::get<1>(pair) << "\n";
     }
-    for(auto x : ImgUtils::get_positions_in_board(ref,cv::imread("enemy_pieces/rook.png"))){
-        std::cout << x << "\n";
+    for(auto x : Chess::get_positions_in_board(ref,cv::imread("enemy_pieces/rook.png"))){
+        std::cout << static_cast<std::string>(x) << "\n";
     }
 }

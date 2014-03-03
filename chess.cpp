@@ -39,4 +39,22 @@ PieceImgs get_PieceImgs_from_dir(std::string path){
     }
     return rv;
 }
+std::vector<Point> get_positions_in_board(cv::Mat origin, cv::Mat tpl){
+    auto positions = ImgUtils::get_positions(origin,tpl);
+    std::vector<Point> positions_in_board;
+    for(auto position : positions){
+        for(int i = 0;i<8;++i){
+            for(int j = 0;j<8;++j){
+                auto x = 192 + i * 65;
+                auto y = 128 + j * 65;
+                if(x - 10 > position.x && y - 10 > position.y){
+                    positions_in_board.push_back(Point{i,j});
+                    goto END;
+                }
+            }
+        }
+        END:;
+    }
+    return positions_in_board;
+}
 }

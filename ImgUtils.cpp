@@ -71,23 +71,4 @@ std::vector<cv::Point> get_positions(cv::Mat origin, cv::Mat tpl){
 
     return points;
 }
-std::vector<cv::Point> get_positions_in_board(cv::Mat origin, cv::Mat tpl){
-    auto positions = get_positions(origin,tpl);
-    std::vector<cv::Point> positions_in_board;
-    for(auto position : positions){
-        for(int i = 0;i<8;++i){
-            for(int j = 0;j<8;++j){
-                auto x = 192 + i * 65;
-                auto y = 128 + j * 65;
-                if(x - 10 > position.x && y - 10 > position.y){
-                    positions_in_board.push_back(cv::Point(i,j));
-                    goto END;
-                }
-            }
-        }
-        END:
-        ;
-    }
-    return positions_in_board;
-}
 }
