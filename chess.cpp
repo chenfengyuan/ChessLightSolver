@@ -1,6 +1,7 @@
 #include "chess.h"
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include "ImgUtils.h"
 namespace Chess{
 Chess::Board get_board(cv::Mat img){
     Chess::Board board{};
@@ -22,5 +23,20 @@ Chess::Board get_board(cv::Mat img){
         }
     }
     return board;
+}
+PieceCount get_piece_count(cv::Mat img, PieceImgs pieces_imgs){
+    PieceCount piece_count{};
+    for(auto & type : {PieceType::king,PieceType::rook,PieceType::bishop,PieceType::queen,PieceType::knight,PieceType::pawn}){
+        piece_count[type] = ImgUtils::get_positions(img,pieces_imgs[type]).size();
+    }
+    return piece_count;
+}
+PieceImgs get_PieceImgs_from_dir(std::string path){
+    PieceImgs rv{};
+    for(auto piece_type : get_all_piece_types()){
+        std::string filename = get_PieceType_name(piece_type) + ".png";
+        rv[piece_type] = cv::imread(path + "/" + filename);
+    }
+    return rv;
 }
 }

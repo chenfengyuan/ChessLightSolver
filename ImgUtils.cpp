@@ -29,6 +29,8 @@ std::vector<bool> get_board(cv::Mat img){
 }
 
 std::vector<cv::Point> get_positions(cv::Mat origin, cv::Mat tpl){
+    if(tpl.dims == 0)
+        return std::vector<cv::Point>();
     cv::Mat gref, gtpl;
     std::vector<cv::Point> points;
     cv::cvtColor(origin, gref, CV_BGR2GRAY);
@@ -63,7 +65,29 @@ std::vector<cv::Point> get_positions(cv::Mat origin, cv::Mat tpl){
 });
 
     points.resize(last - points.begin());
+    for(auto & point : points){
+        point = cv::Point(point.y,point.x);
+    }
 
     return points;
+}
+std::vector<cv::Point> get_positions_in_board(cv::Mat origin, cv::Mat tpl){
+    auto positions = get_positions(origin,tpl);
+    std::vector<cv::Point> positions_in_board;
+    for(auto position : positions){
+        for(int i = 0;i<8;++i){
+            for(int j = 0;j<8;++j){
+                auto x = 192 + i * 65;
+                auto y = 128 + j * 65;
+                if(x - 10 > position.x && y - 10 > position.y){
+                    positions_in_board.push_back(cv::Point(i,j));
+                    goto END;
+                }
+            }
+        }
+        END:
+        ;
+    }
+    return positions_in_board;
 }
 }

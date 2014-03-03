@@ -23,8 +23,12 @@ int main(int,char *argv[])
         }
         std::cout << "\n";
     }
-    cv::Mat tpl = cv::imread(argv[2]);
-    for(auto & point : ImgUtils::get_positions(ref,tpl)){
-        std::cout << point << std::endl;
+    using Chess::PieceType;
+    Chess::PieceImgs piece_imgs = Chess::get_PieceImgs_from_dir("chess pieces");
+    for(auto pair : Chess::get_piece_count(ref,piece_imgs)){
+        std::cout << get_PieceType_name(std::get<0>(pair)) << "," << std::get<1>(pair) << "\n";
+    }
+    for(auto x : ImgUtils::get_positions_in_board(ref,cv::imread("enemy_pieces/rook.png"))){
+        std::cout << x << "\n";
     }
 }
