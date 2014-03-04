@@ -3,16 +3,46 @@
 #include <array>
 #include <opencv2/opencv.hpp>
 #include <unordered_map>
+#include <algorithm>
 namespace Chess{
-struct Board:std::array<bool, 8 *8>{
-    bool operator[](int x){
-        return this->at(x);
+struct Point{
+    int x;
+    int y;
+    Point(int x_,int y_):x{x_},y{y_}{}
+    Point():x{-1},y{-1}{}
+    operator std::string (){
+        return std::to_string(x) + "," + std::to_string(y);
     }
 };
 enum struct PieceType{
     unknow,king,rook,bishop,queen,knight,pawn
 };
-
+struct Piece{
+    PieceType piece_type;
+    Point point;
+};
+inline bool operator==(Piece a,Piece b){
+    if(a.piece_type == b.piece_type && a.point.x == b.point.x && a.point.y == b.point.y)
+        return true;
+    else
+        return false;
+}
+struct Board:std::array<bool, 8*8>{
+    bool & operator[](int x){
+        return this->at(x);
+    }
+};
+struct PieceEffectRange{
+    int dx;
+    int dy;
+    int n;
+    PieceEffectRange(int dx_,int dy_, int n_):dx{dx_},dy{dy_},n{n_}{}
+    operator std::string (){
+        return std::to_string(dx) + "," + std::to_string(dy) + "," + std::to_string(n);
+    }
+};
+std::vector<PieceEffectRange> get_piece_effect_ranges(PieceType piecetype);
+Board set_to_board(Board const b,std::vector<Piece> pieces, std::vector<Piece> effect_pieces,bool boolean);
 inline std::string get_PieceType_name(PieceType x){
     switch(x){
     case PieceType::unknow : return "unknow";
@@ -31,20 +61,7 @@ inline std::vector<PieceType> get_all_piece_types(){
     }
     return rv;
 }
-struct Point{
-    int x;
-    int y;
-    Point(int x_,int y_):x{x_},y{y_}{}
-    Point():x{-1},y{-1}{}
-    operator std::string (){
-        return std::to_string(x) + "," + std::to_string(y);
-    }
-};
 
-struct Piece{
-    PieceType piece_type;
-    Point point;
-};
 Chess::Board get_board(cv::Mat img);
 struct PieceCountHash{
     typedef PieceType argument_type;

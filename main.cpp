@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include "chess.h"
 
+
 int main(int,char *argv[])
 {
     cv::Mat ref = cv::imread(argv[1]);
@@ -30,5 +31,31 @@ int main(int,char *argv[])
     }
     for(auto x : Chess::get_positions_in_board(ref,cv::imread("enemy_pieces/rook.png"))){
         std::cout << static_cast<std::string>(x) << "\n";
+    }
+    for(auto piecetype : Chess::get_all_piece_types()){
+        std::cout << get_PieceType_name(piecetype) << "\n";
+        for(auto x : Chess::get_piece_effect_ranges(piecetype)){
+            std::cout << static_cast<std::string>(x) << " ";
+        }
+        std::cout << "\n";
+    }
+    for(auto piecetype : Chess::get_all_piece_types())
+    {
+        Chess::Board board{};
+        Chess::Piece p;
+        std::cout << Chess::get_PieceType_name(piecetype) << "\n";
+        p.piece_type = piecetype;
+        p.point={3,3};
+        std::vector<Chess::Piece> list={p};
+        board = Chess::set_to_board(board,list,list,true);
+        for(int i=0;i<8;++i){
+            for(int j=0;j<8;++j){
+                if(board[i*8+j])
+                    std::cout << '*';
+                else
+                    std::cout << ".";
+            }
+            std::cout << "\n";
+        }
     }
 }

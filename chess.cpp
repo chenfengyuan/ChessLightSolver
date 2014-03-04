@@ -57,4 +57,87 @@ std::vector<Point> get_positions_in_board(cv::Mat origin, cv::Mat tpl){
     }
     return positions_in_board;
 }
+std::vector<PieceEffectRange> get_piece_effect_ranges(PieceType piecetype){
+    typedef PieceEffectRange P;
+    std::vector<P> ranges;
+    switch(piecetype){
+    case PieceType::bishop:
+        for(auto i : {-1,1}){
+            for(auto j : {-1, 1}){
+                ranges.push_back(P{i,j,-1});
+            }
+        }
+        return ranges;
+    case PieceType::king:
+        for(int i=-1;i<2;++i){
+            for(int j=-1;j<2;++j){
+                if(i==0 && j==0)
+                    continue;
+                ranges.push_back(P{i,j,1});
+            }
+        }
+        return ranges;
+    case PieceType::knight:
+        for(auto i :{-1,1}){
+            for(auto j :{-2,2}){
+                ranges.push_back(P{i,j,1});
+                ranges.push_back(P{j,i,1});
+            }
+        }
+        return ranges;
+    case PieceType::pawn:
+        ranges={PieceEffectRange{-1,-1,1},PieceEffectRange{-1,1,1}};
+        return ranges;
+    case PieceType::rook:
+        for(auto i : {-1, 1}){
+            ranges.push_back(P{0,i,-1});
+            ranges.push_back(P{i,0,-1});
+        }
+        return ranges;
+    case PieceType::queen:
+        for(int i=-1;i<2;++i){
+            for(int j=-1;j<2;++j){
+                if(i==0 && j == 0)
+                    continue;
+                ranges.push_back(P{i,j,-1});
+            }
+        }
+        return ranges;
+    case PieceType::unknow:
+        return ranges;
+    }
+}
+Board set_to_board(Board const b,std::vector<Piece> pieces, std::vector<Piece> effect_pieces,bool boolean){
+    struct PieceOnBoardHash{
+        size_t operator()(Piece const& p) const
+        {
+            return p.point.x * 8 + p.point.y;
+        }
+    };
+    Board rv{b};
+    std::unordered_map<Piece, bool, PieceOnBoardHash> pieces_map;
+    for(Piece & piece : pieces){
+        pieces_map[piece] = true;
+    }
+    for(Piece & piece : effect_pieces){
+        for(auto & effect_range : get_piece_effect_ranges(piece.piece_type)){
+            auto x_ = piece.point.x;
+            auto y_ = piece.point.y;
+            for(int i =1;;++i){
+                auto dx = effect_range.dx * i;
+                auto dy = effect_range.dy * i;
+                auto x = x_ + dx;
+                auto y = y_ + dy;
+                if (x>= 0 && x <8 && y >=0 && y <8){
+                    rv.at(x*8+y) = boolean;
+                }else{
+                    break;
+                }
+                if(i==effect_range.n)
+                    break;
+            }
+        }
+    }
+    return rv;
+}
 }
