@@ -108,16 +108,16 @@ std::vector<PieceEffectRange> get_piece_effect_ranges(PieceType piecetype){
     }
 }
 Board set_to_board(Board const b,std::vector<Piece> pieces, std::vector<Piece> effect_pieces,bool boolean){
-    struct PieceOnBoardHash{
-        size_t operator()(Piece const& p) const
+    struct PointHash{
+        size_t operator()(Point const& p) const
         {
-            return p.point.x * 8 + p.point.y;
+            return p.x * 8 + p.y;
         }
     };
     Board rv{b};
-    std::unordered_map<Piece, bool, PieceOnBoardHash> pieces_map;
+    std::unordered_map<Point , bool, PointHash> points_map;
     for(Piece & piece : pieces){
-        pieces_map[piece] = true;
+        points_map[piece.point] = true;
     }
     for(Piece & piece : effect_pieces){
         for(auto & effect_range : get_piece_effect_ranges(piece.piece_type)){
@@ -129,6 +129,8 @@ Board set_to_board(Board const b,std::vector<Piece> pieces, std::vector<Piece> e
                 auto x = x_ + dx;
                 auto y = y_ + dy;
                 if (x>= 0 && x <8 && y >=0 && y <8){
+                    if(points_map[Point{x,y}])
+                        break;
                     rv.at(x*8+y) = boolean;
                 }else{
                     break;

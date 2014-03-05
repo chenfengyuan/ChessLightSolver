@@ -21,8 +21,8 @@ struct Piece{
     PieceType piece_type;
     Point point;
 };
-inline bool operator==(Piece a,Piece b){
-    if(a.piece_type == b.piece_type && a.point.x == b.point.x && a.point.y == b.point.y)
+inline bool operator==(Point a,Point b){
+    if(a.x == b.x && a.y == b.y)
         return true;
     else
         return false;

@@ -42,12 +42,14 @@ int main(int,char *argv[])
     for(auto piecetype : Chess::get_all_piece_types())
     {
         Chess::Board board{};
-        Chess::Piece p;
+        Chess::Piece p,p1;
         std::cout << Chess::get_PieceType_name(piecetype) << "\n";
         p.piece_type = piecetype;
         p.point={3,3};
+        p1.point={3,1};
         std::vector<Chess::Piece> list={p};
-        board = Chess::set_to_board(board,list,list,true);
+        std::vector<Chess::Piece> list1={p1};
+        board = Chess::set_to_board(board,list1,list,true);
         for(int i=0;i<8;++i){
             for(int j=0;j<8;++j){
                 if(board[i*8+j])
