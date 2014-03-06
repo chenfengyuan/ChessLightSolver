@@ -77,6 +77,15 @@ int main(int,char *argv[])
     std::cout << "\n";
     for (auto answer : Chess::solve(board, tmp, Chess::get_piece_count(ref, piece_imgs))){
         std::cout << Chess::pprint(answer);
+        for(auto p : answer){
+            auto img = piece_imgs[p.piece_type];
+            auto x = 127 + 65 * p.point.x;
+            auto y = 65 + 65 * p.point.y;
+            std::cout << x << "," << y<< "\n";
+            cv::Rect roi(cv::Point(y,x), img.size());
+            img.copyTo(ref(roi));
+        }
         std::cout << "\n";
     }
+    cv::imshow("SLOVED",ref);
 }
