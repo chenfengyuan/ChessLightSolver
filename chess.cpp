@@ -2,6 +2,7 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include "ImgUtils.h"
+#include <algorithm>
 namespace Chess{
 Chess::Board get_board(cv::Mat img){
     Chess::Board board{};
@@ -129,9 +130,9 @@ Board set_to_board(Board const b,std::vector<Piece> pieces, std::vector<Piece> e
                 auto x = x_ + dx;
                 auto y = y_ + dy;
                 if (x>= 0 && x <8 && y >=0 && y <8){
+                    rv.at(x*8+y) = boolean;
                     if(points_map[Point{x,y}])
                         break;
-                    rv.at(x*8+y) = boolean;
                 }else{
                     break;
                 }
@@ -139,6 +140,94 @@ Board set_to_board(Board const b,std::vector<Piece> pieces, std::vector<Piece> e
                     break;
             }
         }
+    }
+    return rv;
+}
+inline size_t get_left_score(Board board){
+    return std::count(board.begin(), board.end(), true);
+}
+std::vector<Point> get_points(Board board){
+    std::vector<Point> rv;
+    for(int i =0;i<8;++i){
+        for(int j=0;j<8;++j){
+            if(board.get(i,j))
+                rv.push_back({i,j});
+        }
+    }
+    return rv;
+}
+int times{0};
+bool solve(std::vector<std::vector<Piece>> & answers, Board b_place, Board b_effect,
+           std::vector<Piece> enemy_pieces, std::vector<PieceType> piecetypes,std::vector<Piece> current_choice={}){
+//    for(auto x : current_choice){
+//        std::cout << static_cast<std::string>(x) << " ";
+//    }
+//    std::cout << get_left_score(set_to_board(b_effect, enemy_pieces, current_choice, false)) << "\n";
+    if(piecetypes.size() == 0 && get_left_score(set_to_board(b_effect, enemy_pieces, current_choice, false)) == 0){
+        answers.push_back(current_choice);
+        return true;
+    }
+    if(piecetypes.size() == 0)
+        return false;
+    struct Choice{
+        Piece piece;
+        size_t score;
+    };
+
+    std::vector<Choice> choices{};
+    PieceType piecetype = piecetypes[piecetypes.size() - 1];
+    piecetypes.pop_back();
+    for(auto point : get_points(b_place)){
+        times++;
+        Piece piece{piecetype, point};
+        current_choice.push_back(piece);
+        enemy_pieces.push_back(piece);
+        size_t n = get_left_score(set_to_board(b_effect,enemy_pieces, current_choice, false));
+        Choice c{piece, n};
+        choices.push_back(c);
+        enemy_pieces.pop_back();
+        current_choice.pop_back();
+    }
+    std::sort(choices.begin(),choices.end(), [](Choice a,Choice b){return a.score < b.score;});
+    for(auto x : choices){
+//        std::cout << static_cast<std::string>(x.piece) << " " << x.score<<"\n";
+        current_choice.push_back(x.piece);
+        enemy_pieces.push_back(x.piece);
+        Board b_place_tmp{b_place};
+        b_place_tmp.get(x.piece.point.x,x.piece.point.y) = false;
+        if (solve(answers, b_place_tmp, b_effect, enemy_pieces, piecetypes, current_choice)){
+            return true;
+        }
+        enemy_pieces.pop_back();
+        current_choice.pop_back();
+    }
+    return false;
+}
+std::vector<std::vector<Piece>> solve(Board board, std::vector<Piece> enemy_pieces, PieceCount piece_count){
+    std::vector<std::vector<Piece>> answers;
+    std::vector<PieceType> piecetypes;
+    for(auto pair : piece_count){
+        for(int i=0;i<std::get<1>(pair);++i){
+            piecetypes.push_back(std::get<0>(pair));
+        }
+    }
+    std::sort(piecetypes.begin(), piecetypes.end(),std::greater<PieceType>());
+    for(auto x : piecetypes){
+        std::cout << get_PieceType_name(x) << " ";
+    }
+    std::cout << "\n";
+    Board b_place = set_to_board(board, enemy_pieces, enemy_pieces, false);
+    solve(answers, b_place, board, enemy_pieces, piecetypes);
+    std::cout << times << "\n";
+    return answers;
+}
+std::string pprint(Piece p){
+    return get_PieceType_name(p.piece_type) + "," + static_cast<char>('8' - p.point.x) + static_cast<char>('a' + p.point.y);
+}
+std::string pprint(std::vector<Piece> ps){
+    std::string rv;
+    for(auto x : ps){
+        rv += pprint(x) + " ";
     }
     return rv;
 }
