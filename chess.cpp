@@ -14,6 +14,10 @@ Chess::Board get_board(cv::Mat img){
             for(int di = -10 ;di < 10;++di){
                 auto value = img.at<cv::Vec3b>(x + di,y);
                 auto v = static_cast<int>(value[0]) * static_cast<int>(value[1]) * static_cast<int>(value[2]);
+                if(v==0){
+                    board.get(i,j) = false;
+                    goto L1;
+                }
                 values.push_back(v);
             }
             sort(values.begin(),values.end());
@@ -21,6 +25,7 @@ Chess::Board get_board(cv::Mat img){
                 board.at(i * 8 + j) = false;
             else
                 board.at(i * 8 + j) = true;
+            L1:;
         }
     }
     return board;
@@ -58,7 +63,7 @@ std::vector<Point> get_positions_in_board(cv::Mat origin, cv::Mat tpl){
     }
     return positions_in_board;
 }
-std::vector<PieceEffectRange> get_piece_effect_ranges(PieceType piecetype){
+std::vector<PieceEffectRange> get_piecetype_effect_ranges(PieceType piecetype){
     typedef PieceEffectRange P;
     std::vector<P> ranges;
     switch(piecetype){
@@ -108,6 +113,16 @@ std::vector<PieceEffectRange> get_piece_effect_ranges(PieceType piecetype){
         return ranges;
     }
 }
+std::vector<PieceEffectRange> get_enemy_piecetype_effect_ranges(PieceType piecetype){
+    typedef PieceEffectRange P;
+    if(piecetype == PieceType::pawn){
+        std::vector<P> ranges={PieceEffectRange{1,-1,1},PieceEffectRange{1,1,1}};
+        return ranges;
+    }else{
+        return get_piecetype_effect_ranges(piecetype);
+    }
+}
+
 size_t get_piece_effect_score(PieceType piecetype){
     typedef PieceType P;
     switch (piecetype){
@@ -128,7 +143,7 @@ size_t get_piece_effect_score(PieceType piecetype){
     }
 }
 
-Board set_to_board(Board const b,std::vector<Piece> pieces, std::vector<Piece> effect_pieces,bool boolean){
+Board set_to_board(Board const b,std::vector<Piece> enemy_pieces, std::vector<Piece> pieces){
     struct PointHash{
         size_t operator()(Point const& p) const
         {
@@ -140,17 +155,45 @@ Board set_to_board(Board const b,std::vector<Piece> pieces, std::vector<Piece> e
     for(Piece & piece : pieces){
         points_map[piece.point] = true;
     }
-    for(Piece & piece : effect_pieces){
-        for(auto & effect_range : get_piece_effect_ranges(piece.piece_type)){
-            auto x_ = piece.point.x;
-            auto y_ = piece.point.y;
+    for(Piece & piece : enemy_pieces){
+        points_map[piece.point] = true;
+    }
+    Board no_effect_point{};
+    for(Piece & piece : enemy_pieces){
+        auto x_ = piece.point.x;
+        auto y_ = piece.point.y;
+        for(auto & effect_range : get_enemy_piecetype_effect_ranges(piece.piece_type)){
+            for(auto i=1;;++i){
+                auto dx = effect_range.dx * i;
+                auto dy = effect_range.dy * i;
+                auto x = x_ + dx;
+                auto y = y_ + dy;
+                if(x>=0 && x < 8&&y>=0&&y<8){
+                    no_effect_point.get(x,y) = true;
+                    if(points_map[Point{x,y}])
+                        break;
+                }else{
+                    break;
+                }
+                if(i==effect_range.n)
+                    break;
+            }
+        }
+    }
+//    std::cout << static_cast<std::string>(no_effect_point) << "\n";
+    for(Piece & piece : pieces){
+        auto x_ = piece.point.x;
+        auto y_ = piece.point.y;
+        if(no_effect_point.get(x_,y_))
+            continue;
+        for(auto & effect_range : get_piecetype_effect_ranges(piece.piece_type)){
             for(int i =1;;++i){
                 auto dx = effect_range.dx * i;
                 auto dy = effect_range.dy * i;
                 auto x = x_ + dx;
                 auto y = y_ + dy;
                 if (x>= 0 && x <8 && y >=0 && y <8){
-                    rv.at(x*8+y) = boolean;
+                    rv.at(x*8+y) = false;
                     if(points_map[Point{x,y}])
                         break;
                 }else{
@@ -177,13 +220,13 @@ std::vector<Point> get_points(Board board){
     return rv;
 }
 int times{0};
-bool solve(std::vector<std::vector<Piece>> & answers, Board b_place, Board b_effect,
+bool solve(std::vector<std::vector<Piece>> & answers, Board b,
            std::vector<Piece> enemy_pieces, std::vector<PieceType> piecetypes,std::vector<Piece> current_choice={}){
 //    for(auto x : current_choice){
 //        std::cout << static_cast<std::string>(x) << " ";
 //    }
-//    std::cout << get_left_score(set_to_board(b_effect, enemy_pieces, current_choice, false)) << "\n";
-    if(piecetypes.size() == 0 && get_left_score(set_to_board(b_effect, enemy_pieces, current_choice, false)) == 0){
+//    std::cout << get_left_score(set_to_board(b, enemy_pieces, current_choice)) << "\n";
+    if(piecetypes.size() == 0 && get_left_score(set_to_board(b, enemy_pieces, current_choice)) == 0){
         answers.push_back(current_choice);
         return true;
     }
@@ -197,15 +240,17 @@ bool solve(std::vector<std::vector<Piece>> & answers, Board b_place, Board b_eff
     std::vector<Choice> choices{};
     PieceType piecetype = piecetypes[piecetypes.size() - 1];
     piecetypes.pop_back();
+    Board b_place{b};
+    for(auto p : current_choice){
+        b_place.get(p.point.x,p.point.y) = false;
+    }
     for(auto point : get_points(b_place)){
         times++;
         Piece piece{piecetype, point};
         current_choice.push_back(piece);
-        enemy_pieces.push_back(piece);
-        size_t n = get_left_score(set_to_board(b_effect,enemy_pieces, current_choice, false));
+        size_t n = get_left_score(set_to_board(b,enemy_pieces, current_choice));
         Choice c{piece, n};
         choices.push_back(c);
-        enemy_pieces.pop_back();
         current_choice.pop_back();
     }
     std::sort(choices.begin(),choices.end(), [](Choice a,Choice b){return a.score < b.score;});
@@ -218,13 +263,9 @@ bool solve(std::vector<std::vector<Piece>> & answers, Board b_place, Board b_eff
         if(sum < x.score)
             break;
         current_choice.push_back(x.piece);
-        enemy_pieces.push_back(x.piece);
-        Board b_place_tmp{b_place};
-        b_place_tmp.get(x.piece.point.x,x.piece.point.y) = false;
-        if (solve(answers, b_place_tmp, b_effect, enemy_pieces, piecetypes, current_choice)){
+        if (solve(answers, b, enemy_pieces, piecetypes, current_choice)){
             return true;
         }
-        enemy_pieces.pop_back();
         current_choice.pop_back();
     }
     return false;
@@ -242,8 +283,7 @@ std::vector<std::vector<Piece>> solve(Board board, std::vector<Piece> enemy_piec
         std::cout << get_PieceType_name(x) << " ";
     }
     std::cout << "\n";
-    Board b_place = set_to_board(board, enemy_pieces, enemy_pieces, false);
-    solve(answers, b_place, board, enemy_pieces, piecetypes);
+    solve(answers, board, enemy_pieces, piecetypes);
     std::cout << times << "\n";
     return answers;
 }

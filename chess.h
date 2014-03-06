@@ -17,7 +17,7 @@ struct Point{
     }
 };
 enum struct PieceType{
-    unknow,queen,king,rook,bishop,knight,pawn
+    unknow,knight,rook,bishop,king,queen,pawn
 };
 inline std::string get_PieceType_name(PieceType x){
     switch(x){
@@ -73,7 +73,7 @@ struct PieceEffectRange{
         return std::to_string(dx) + "," + std::to_string(dy) + "," + std::to_string(n);
     }
 };
-std::vector<PieceEffectRange> get_piece_effect_ranges(PieceType piecetype);
+std::vector<PieceEffectRange> get_piecetype_effect_ranges(PieceType piecetype);
 Board set_to_board(Board const b,std::vector<Piece> pieces, std::vector<Piece> effect_pieces,bool boolean);
 inline std::vector<PieceType> get_all_piece_types(){
     std::vector<PieceType> rv{};

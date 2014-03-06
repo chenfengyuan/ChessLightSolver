@@ -63,12 +63,18 @@ int main(int,char *argv[])
 //    }
 //    std::cout << "\n";
     std::vector<Chess::Piece> tmp;
-    for(auto x : Chess::get_positions_in_board(ref, cv::imread("enemy_pieces/rook.png"))){
-        Chess::Piece p;
-        p.piece_type = Chess::PieceType::rook;
-        p.point = x;
-        tmp.push_back(p);
+    typedef Chess::PieceType PT;
+    for(auto pt : {PT::bishop, PT::rook, PT::pawn, PT::knight, PT::queen}){
+        std::string filename{std::string("enemy_pieces/") + Chess::get_PieceType_name(pt) + ".png"};
+        for(auto x : Chess::get_positions_in_board(ref, cv::imread(filename))){
+            Chess::Piece p;
+            p.piece_type = pt;
+            p.point = x;
+            tmp.push_back(p);
+            std::cout << Chess::get_PieceType_name(p.piece_type) << "," << static_cast<std::string>(x) <<" ";
+        }
     }
+    std::cout << "\n";
     for (auto answer : Chess::solve(board, tmp, Chess::get_piece_count(ref, piece_imgs))){
         std::cout << Chess::pprint(answer);
         std::cout << "\n";
