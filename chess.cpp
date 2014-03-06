@@ -108,6 +108,26 @@ std::vector<PieceEffectRange> get_piece_effect_ranges(PieceType piecetype){
         return ranges;
     }
 }
+size_t get_piece_effect_score(PieceType piecetype){
+    typedef PieceType P;
+    switch (piecetype){
+    case P::bishop:
+        return 13;
+    case P::rook:
+        return 14;
+    case P::king:
+        return 8;
+    case P::queen:
+        return 27;
+    case P::knight:
+        return 8;
+    case P::pawn:
+        return 2;
+    case P::unknow:
+        return 0;
+    }
+}
+
 Board set_to_board(Board const b,std::vector<Piece> pieces, std::vector<Piece> effect_pieces,bool boolean){
     struct PointHash{
         size_t operator()(Point const& p) const
@@ -191,6 +211,12 @@ bool solve(std::vector<std::vector<Piece>> & answers, Board b_place, Board b_eff
     std::sort(choices.begin(),choices.end(), [](Choice a,Choice b){return a.score < b.score;});
     for(auto x : choices){
 //        std::cout << static_cast<std::string>(x.piece) << " " << x.score<<"\n";
+        size_t sum = 0;
+        for(auto x : piecetypes){
+            sum += get_piece_effect_score(x);
+        }
+        if(sum < x.score)
+            break;
         current_choice.push_back(x.piece);
         enemy_pieces.push_back(x.piece);
         Board b_place_tmp{b_place};
