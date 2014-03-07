@@ -88,5 +88,8 @@ int main(int,char *argv[])
         std::cout << "\n";
     }
     cv::imshow("SLOVED",ref);
-    cv::waitKey(0);
+    cv::moveWindow("SLOVED", 0, 0);
+//    cv::waitKey(0);
+    std::string c;
+    std::getline(std::cin,c);
 }

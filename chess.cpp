@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include "ImgUtils.h"
 #include <algorithm>
+#include <random>
 namespace Chess{
 Chess::Board get_board(cv::Mat img){
     Chess::Board board{};
@@ -271,6 +272,9 @@ bool solve(std::vector<std::vector<Piece>> & answers, Board b,
     return false;
 }
 std::vector<std::vector<Piece>> solve(Board board, std::vector<Piece> enemy_pieces, PieceCount piece_count){
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::srand(std::time(nullptr));
     std::vector<std::vector<Piece>> answers;
     std::vector<PieceType> piecetypes;
     for(auto pair : piece_count){
@@ -284,6 +288,14 @@ std::vector<std::vector<Piece>> solve(Board board, std::vector<Piece> enemy_piec
     }
     std::cout << "\n";
     solve(answers, board, enemy_pieces, piecetypes);
+    for(int i = 0;answers.size() == 0 && i < 42 ;++i){
+        std::shuffle(piecetypes.begin(), piecetypes.end(),g);
+        for(auto x : piecetypes){
+            std::cout << get_PieceType_name(x) << " ";
+        }
+        std::cout << "\n";
+        solve(answers, board, enemy_pieces, piecetypes);
+    }
     std::cout << times << "\n";
     return answers;
 }
