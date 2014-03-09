@@ -104,7 +104,9 @@ PieceImgs get_PieceImgs_from_dir(std::string path);
 PieceCount get_piece_count(cv::Mat img, PieceImgs pieces_imgs);
 std::vector<Point> get_positions_in_board(cv::Mat origin, cv::Mat tpl);
 std::vector<std::vector<Piece>> solve(Board board, std::vector<Piece> enemy_pieces, PieceCount piece_count);
+std::vector<Piece> get_enemy_pieces(cv::Mat img);
 std::string pprint(Piece);
 std::string pprint(std::vector<Piece>);
+void draw_answers(std::vector<Piece> answer, cv::Mat img, PieceImgs piece_imgs);
 }
 #endif // CHESS_H

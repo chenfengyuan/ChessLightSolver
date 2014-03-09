@@ -314,4 +314,29 @@ std::string pprint(std::vector<Piece> ps){
     }
     return rv;
 }
+std::vector<Piece> get_enemy_pieces(cv::Mat ref){
+    std::vector<Chess::Piece> tmp;
+    typedef Chess::PieceType PT;
+    for(auto pt : {PT::bishop, PT::rook, PT::pawn, PT::knight, PT::queen}){
+        std::string filename{std::string("enemy_pieces/") + Chess::get_PieceType_name(pt) + ".png"};
+        for(auto x : Chess::get_positions_in_board(ref, cv::imread(filename))){
+            Chess::Piece p;
+            p.piece_type = pt;
+            p.point = x;
+            tmp.push_back(p);
+            std::cout << Chess::get_PieceType_name(p.piece_type) << "," << static_cast<std::string>(x) <<" ";
+        }
+    }
+    return tmp;
+}
+void draw_answers(std::vector<Piece> answer, cv::Mat ref, PieceImgs piece_imgs){
+    std::cout << Chess::pprint(answer);
+    for(auto p : answer){
+        auto img = piece_imgs[p.piece_type];
+        auto x = 127 + 65 * p.point.x;
+        auto y = 65 + 65 * p.point.y;
+        cv::Rect roi(cv::Point(y,x), img.size());
+        img.copyTo(ref(roi));
+    }
+}
 }
