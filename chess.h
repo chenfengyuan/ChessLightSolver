@@ -47,6 +47,9 @@ struct Board:std::array<bool, 8*8>{
     bool & operator[](int x){
         return this->at(x);
     }
+    bool & operator[](Point p){
+        return this->get(p.x,p.y);
+    }
     operator std::string(){
         std::ostringstream buf{};
         for(int i=0;i<8;++i){

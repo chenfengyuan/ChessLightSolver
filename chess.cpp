@@ -33,8 +33,10 @@ Chess::Board get_board(cv::Mat img){
 }
 PieceCount get_piece_count(cv::Mat img, PieceImgs pieces_imgs){
     PieceCount piece_count{};
+    cv::Rect roi(cv::Point(60,680), cv::Point(578,834));
+    cv::Mat img2=img(roi);
     for(auto & type : {PieceType::king,PieceType::rook,PieceType::bishop,PieceType::queen,PieceType::knight,PieceType::pawn}){
-        piece_count[type] = ImgUtils::get_positions(img,pieces_imgs[type]).size();
+        piece_count[type] = ImgUtils::get_positions(img2,pieces_imgs[type]).size();
     }
     return piece_count;
 }
@@ -67,6 +69,7 @@ std::vector<Point> get_positions_in_board(cv::Mat origin, cv::Mat tpl){
 std::vector<PieceEffectRange> get_piecetype_effect_ranges(PieceType piecetype){
     typedef PieceEffectRange P;
     std::vector<P> ranges;
+    ranges.reserve(10);
     switch(piecetype){
     case PieceType::bishop:
         for(auto i : {-1,1}){
@@ -74,7 +77,7 @@ std::vector<PieceEffectRange> get_piecetype_effect_ranges(PieceType piecetype){
                 ranges.push_back(P{i,j,-1});
             }
         }
-        return ranges;
+        break;
     case PieceType::king:
         for(int i=-1;i<2;++i){
             for(int j=-1;j<2;++j){
@@ -83,7 +86,7 @@ std::vector<PieceEffectRange> get_piecetype_effect_ranges(PieceType piecetype){
                 ranges.push_back(P{i,j,1});
             }
         }
-        return ranges;
+        break;
     case PieceType::knight:
         for(auto i :{-1,1}){
             for(auto j :{-2,2}){
@@ -91,16 +94,16 @@ std::vector<PieceEffectRange> get_piecetype_effect_ranges(PieceType piecetype){
                 ranges.push_back(P{j,i,1});
             }
         }
-        return ranges;
+        break;
     case PieceType::pawn:
         ranges={PieceEffectRange{-1,-1,1},PieceEffectRange{-1,1,1}};
-        return ranges;
+        break;
     case PieceType::rook:
         for(auto i : {-1, 1}){
             ranges.push_back(P{0,i,-1});
             ranges.push_back(P{i,0,-1});
         }
-        return ranges;
+        break;
     case PieceType::queen:
         for(int i=-1;i<2;++i){
             for(int j=-1;j<2;++j){
@@ -109,10 +112,11 @@ std::vector<PieceEffectRange> get_piecetype_effect_ranges(PieceType piecetype){
                 ranges.push_back(P{i,j,-1});
             }
         }
-        return ranges;
+        break;
     case PieceType::unknow:
-        return ranges;
+        break;
     }
+    return ranges;
 }
 std::vector<PieceEffectRange> get_enemy_piecetype_effect_ranges(PieceType piecetype){
     typedef PieceEffectRange P;
@@ -152,7 +156,8 @@ Board set_to_board(Board const b,std::vector<Piece> enemy_pieces, std::vector<Pi
         }
     };
     Board rv{b};
-    std::unordered_map<Point , bool, PointHash> points_map;
+    Board points_map{};
+//    std::unordered_map<Point , bool, PointHash> points_map;
     for(Piece & piece : pieces){
         points_map[piece.point] = true;
     }
