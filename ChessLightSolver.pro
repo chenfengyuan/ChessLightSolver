@@ -7,10 +7,10 @@ CONFIG += c++11
 SOURCES += main.cpp \
     ImgUtils.cpp \
     chess.cpp
-INCLUDEPATH += /usr/local/Cellar/opencv/2.4.6.1/include/
+INCLUDEPATH += /usr/local/Cellar/opencv/2.4.8.2/include/
 
-QMAKE_CXXFLAGS += -isystem /usr/local/Cellar/opencv/2.4.6.1/include/ -g -O2
-QMAKE_LIBDIR += /usr/local/Cellar/opencv/2.4.6.1/lib/
+QMAKE_CXXFLAGS += -isystem /usr/local/Cellar/opencv/2.4.8.2/include/ -g -O2
+QMAKE_LIBDIR += /usr/local/Cellar/opencv/2.4.8.2/lib/
 QMAKE_LIBS += -lopencv_highgui -lopencv_imgproc -lopencv_core -lopencv_features2d -lopencv_nonfree -lopencv_objdetect -lopencv_flann
 
 HEADERS += \
